@@ -46,7 +46,7 @@ namespace LibraryService.Test
                 Title = "Test Book12",
                 Author = "TestAuthor 2",
                 TotalPages = 190,
-                ISBN = "123-456-9783-365",
+                ISBN = "453-478-8303-905",
                 TotalCopies = 19,
             };
             var user1 = new User { Name = "Tolu Caleb", Email ="tolu@test.com" };
