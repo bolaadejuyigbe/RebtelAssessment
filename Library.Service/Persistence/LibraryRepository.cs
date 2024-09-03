@@ -105,6 +105,8 @@ namespace Library.Service.Persistence
         }
         public async Task<float> GetReadRateAsync(int bookId)
         {
+            if (bookId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(bookId));
             var borrowRecords = await _context.BorrowRecords
                .Where(br => br.BookId == bookId && br.ReturnedDate != null)
                .Include(br => br.Book)  

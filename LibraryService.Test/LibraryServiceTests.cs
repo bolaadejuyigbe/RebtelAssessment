@@ -204,7 +204,43 @@ namespace LibraryService.Test
             Assert.NotNull(response.Users);
             Assert.Equal(0, response.Users.Select(x => x.BorrowedBooksCount).FirstOrDefault());
         }
+        [Fact]
+        public void GetReadRate_ReturnsCorrectRate()
+        {
+            // Arrange
+            var request = new ReadRateRequest { BookId = 1 };
 
+            // Act
+            var response = _fixture.GetReadRate(request);
 
+            // Assert
+            Assert.NotNull(response);
+            Assert.True(response.PagesPerDay >= 0, "PagesPerDay should be non-negative.");
+        }
+
+        [Fact]
+        public void GetReadRate_ThrowsRpcExceptionForInvalidBookId()
+        {
+            // Arrange
+            var request = new ReadRateRequest { BookId = -1 }; 
+
+            // Act & Assert
+            var exception = Assert.Throws<RpcException>(() => _fixture.GetReadRate(request));
+            Assert.Equal(StatusCode.Internal, exception.Status.StatusCode);
+        }
+
+        [Fact]
+        public void GetReadRate_HandlesNonExistentBook()
+        {
+            // Arrange
+            var request = new ReadRateRequest { BookId = 9999 }; 
+
+            // Act
+            var response = _fixture.GetReadRate(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.Equal(0, response.PagesPerDay);
+        }
     }
 }

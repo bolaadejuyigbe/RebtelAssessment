@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Library.Grpc\Library.Grpc.csproj" />
+    <ProjectReference Include="..\Library.Service\Library.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>
