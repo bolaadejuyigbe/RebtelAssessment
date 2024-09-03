@@ -1,6 +1,5 @@
 ﻿using Library.Grpc.Contract;
 using Microsoft.AspNetCore.Mvc;
-using static Library.Grpc.Contract.LibraryService;
 using Google.Protobuf.WellKnownTypes;
 using Library.Api.Policies;
 
