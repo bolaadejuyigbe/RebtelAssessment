@@ -12,9 +12,9 @@ jobs:
     
     services:
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: mcr.microsoft.com/mssql/server:2019-latest
         env:
-          SA_PASSWORD: "YourStrongPassw0rd"
+          SA_PASSWORD: "YourStrong@Passw0rd"
           ACCEPT_EULA: "Y"
         ports:
           - 1433:1433
@@ -37,7 +37,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 7.0.x
 
     - name: Wait for SQL Server to be up and running
       run: |
