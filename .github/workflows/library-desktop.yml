@@ -25,11 +25,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-   - name: List directory contents
-      run: |
-        echo "Listing directory contents..."
-        dir /s
-
     - name: Restore dependencies
       run: dotnet restore RebtelAssessmentPackage.sln
 
