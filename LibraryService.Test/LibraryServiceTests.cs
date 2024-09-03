@@ -1,12 +1,6 @@
-﻿using Grpc.Core;
-using Library.DataModel.Database;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Library.Grpc.Contract;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LibraryService.Test
 {
@@ -17,13 +11,6 @@ namespace LibraryService.Test
         public LibraryServiceTests(LibraryServiceFixture fixture)
         {
             _fixture = fixture;
-            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                             ?? "Server=localhost,1433;Database=TestDatabase;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;";
-
-            // Example of configuring DbContext for tests if needed
-            var optionsBuilder = new DbContextOptionsBuilder<LibraryDbContext>();
-            optionsBuilder.UseSqlServer(connectionString);
-            var context = new LibraryDbContext(optionsBuilder.Options);
         }
 
         [Fact]
@@ -68,7 +55,7 @@ namespace LibraryService.Test
         public void GetMostBorrowedBooks_WithLargeLimit_ReturnsAllBooks()
         {
             // Arrange
-            var largeLimit = int.MaxValue; // Assuming this is larger than the total number of books
+            var largeLimit = int.MaxValue; 
             var request = new MostBorrowedBooksRequest { Limit = largeLimit };
 
             // Act
@@ -76,8 +63,9 @@ namespace LibraryService.Test
 
             // Assert
             Assert.NotNull(response);
-            Assert.True(response.Books.Count <= largeLimit); // Ensure it doesn't exceed the limit
+            Assert.True(response.Books.Count <= largeLimit); 
         }
+
         [Fact]
         public void GetBookCopyStatus_ReturnsCorrectStatus()
         {
@@ -93,6 +81,29 @@ namespace LibraryService.Test
             Assert.True(response.AvailableCopies >= 0);
         }
 
+        [Fact]
+        public void GetBookCopyStatus_NonExistentBook_ReturnsNullOrThrows()
+        {
+            // Arrange
+            var request = new BookCopyStatusRequest { BookId = 9999 }; 
+
+            // Act & Assert
+            var exception = Assert.Throws<RpcException>(() => _fixture.GetBookCopyStatus(request));
+            Assert.Equal(StatusCode.Internal, exception.StatusCode);
+        }
+        [Fact]
+        public void GetBookCopyStatus_MixedCopies_ReturnsCorrectStatus()
+        {
+            // Arrange
+            var request = new BookCopyStatusRequest { BookId = 4 }; 
+            // Act
+            var response = _fixture.GetBookCopyStatus(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.True(response.BorrowedCopies > 0);
+            Assert.True(response.AvailableCopies > 0);
+        }
         [Fact]
         public void GetBooksBorrowedByUser_ReturnsExpectedBooks()
         {
@@ -111,5 +122,89 @@ namespace LibraryService.Test
             Assert.NotNull(response);
             Assert.NotEmpty(response.Books);
         }
+
+        [Fact]
+        public void GetBooksBorrowedByUser_UserWithBorrowedBooks_ReturnsListOfBooks()
+        {
+            // Arrange
+            var request = new BooksBorrowedByUserRequest
+            {
+                UserId = 2,
+                StartDate = Timestamp.FromDateTime(DateTime.UtcNow.AddMonths(-1).ToUniversalTime()),
+                EndDate = Timestamp.FromDateTime(DateTime.UtcNow.ToUniversalTime())
+            };
+
+            // Act
+            var response =  _fixture.GetBooksBorrowedByUser(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotEmpty(response.Books);
+            Assert.All(response.Books, book => Assert.NotNull(book.Title)); 
+        }
+
+        [Fact]
+        public void GetRelatedBooks_ValidBookId_ReturnsRelatedBooks()
+        {
+            // Arrange
+            var request = new RelatedBooksRequest { BookId = 1 }; 
+
+            // Act
+            var response = _fixture.GetRelatedBooks(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotEmpty(response.Books);
+        }
+        [Fact]
+        public void GetRelatedBooks_NonExistentBook_ReturnsEmptyList()
+        {
+            // Arrange
+            var request = new RelatedBooksRequest { BookId = 9999 }; 
+
+            // Act
+            var response = _fixture.GetRelatedBooks(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.Empty(response.Books);
+        }
+
+        [Fact]
+        public void GetTopBorrowers_ValidTimeFrame_ReturnsTopBorrowers()
+        {
+            // Arrange
+            var request = new TopBorrowersRequest
+            {
+                StartDate = Timestamp.FromDateTime(DateTime.UtcNow.AddMonths(-1).ToUniversalTime()),
+                EndDate = Timestamp.FromDateTime(DateTime.UtcNow.ToUniversalTime())
+            };
+
+            // Act
+            var response = _fixture.GetTopBorrowers(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotEmpty(response.Users);
+        }
+        [Fact]
+        public void GetTopBorrowers_NoBorrowersInTimeFrame_ReturnsEmptyList()
+        {
+            // Arrange
+            var request = new TopBorrowersRequest
+            {
+                StartDate = Timestamp.FromDateTime(DateTime.UtcNow.AddYears(-1).ToUniversalTime()),
+                EndDate = Timestamp.FromDateTime(DateTime.UtcNow.AddMonths(-11).ToUniversalTime())
+            };
+
+            // Act
+            var response = _fixture.GetTopBorrowers(request);
+
+            // Assert
+            Assert.NotNull(response.Users);
+            Assert.Equal(0, response.Users.Select(x => x.BorrowedBooksCount).FirstOrDefault());
+        }
+
+
     }
 }

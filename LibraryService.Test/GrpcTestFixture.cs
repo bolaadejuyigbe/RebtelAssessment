@@ -1,9 +1,11 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
+using Library.DataModel.Database;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Hosting;
 using Polly;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryService.Test
 {
@@ -23,11 +25,21 @@ namespace LibraryService.Test
         public GrpcChannel Channel { get; }
         public HttpClient Client { get; }
 
+        private readonly SqlTestFixture _sqlTestFixture;
         public GrpcTestFixture()
         {
+            _sqlTestFixture = new SqlTestFixture();
+
             _factory = new WebApplicationFactory<TStartup>()
                 .WithWebHostBuilder(builder =>
                 {
+                    builder.ConfigureServices(services =>
+                    {
+                        services.AddDbContext<LibraryDbContext>(options =>
+                        {
+                            options.UseSqlServer(_sqlTestFixture.DbContext.Database.GetDbConnection().ConnectionString);
+                        });
+                    });
                     builder.ConfigureKestrel(options =>
                     {
                         // Ensure Kestrel uses HTTP/2
@@ -65,6 +77,7 @@ namespace LibraryService.Test
             Channel?.Dispose();
             Client?.Dispose();
             _factory?.Dispose();
+            _sqlTestFixture?.Dispose(); 
         }
     }
 }
