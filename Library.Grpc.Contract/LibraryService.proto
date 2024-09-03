@@ -1,0 +1,85 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Library.Grpc.Contract";
+
+package LibraryService;
+
+service LibraryService {
+  rpc GetMostBorrowedBooks(MostBorrowedBooksRequest) returns (MostBorrowedBooksResponse);
+  rpc GetBookCopyStatus(BookCopyStatusRequest) returns (BookCopyStatusResponse);
+  rpc GetTopBorrowers(TopBorrowersRequest) returns (TopBorrowersResponse);
+  rpc GetBooksBorrowedByUser(BooksBorrowedByUserRequest) returns (BooksBorrowedByUserResponse);
+  rpc GetRelatedBooks(RelatedBooksRequest) returns (RelatedBooksResponse);
+  rpc GetReadRate(ReadRateRequest) returns (ReadRateResponse);
+}
+
+message MostBorrowedBooksRequest {
+  int32 limit = 1;
+}
+
+message MostBorrowedBooksResponse {
+  repeated Book books = 1;
+}
+
+message BookCopyStatusRequest {
+  int32 bookId = 1;
+}
+
+message BookCopyStatusResponse {
+  int32 availableCopies = 1;
+  int32 borrowedCopies = 2;
+  string title = 3;
+  string totalCopies = 4;
+}
+
+message TopBorrowersRequest {
+  google.protobuf.Timestamp startDate = 1;
+  google.protobuf.Timestamp endDate = 2;
+}
+
+message TopBorrowersResponse {
+  repeated User users = 1;
+}
+
+message BooksBorrowedByUserRequest {
+  int32 userId = 1;
+  google.protobuf.Timestamp startDate = 2;
+  google.protobuf.Timestamp endDate = 3;
+}
+
+message BooksBorrowedByUserResponse {
+  repeated Book books = 1;
+}
+
+message RelatedBooksRequest {
+  int32 bookId = 1;
+}
+
+message RelatedBooksResponse {
+  repeated Book books = 1;
+}
+
+message ReadRateRequest {
+  int32 bookId = 1;
+}
+
+message ReadRateResponse {
+  float pagesPerDay = 1;
+}
+
+message Book {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  int32 totalPages = 4;
+  int32 availableCopies =5;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  int32 borrowedBooksCount = 4;
+}

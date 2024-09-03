@@ -1,0 +1,53 @@
+version: '3.4'
+
+services:
+ library-api:
+    build:
+      context: .
+      dockerfile: ./Library.Api/Dockerfile # Path to your Dockerfile
+      args:
+       - configuration=Release
+    environment:
+      - Grpc__LibraryServiceUrl=http://library.grpc:5001
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - library-network
+    ports:
+      - "80:80"
+    depends_on:
+      - library.grpc
+ 
+ library.grpc: 
+    build:
+      context: .
+      dockerfile: ./Library.Grpc/Dockerfile
+      args:
+        - configuration=Release
+    environment:
+      - DbConnectionString=Server=192.168.0.74,1433;Database=LibraryDB;Integrated Security=false;User=sa;Password=Adenike62;TrustServerCertificate=True;
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5001
+      - KestrelConfiguration__Ip=0.0.0.0
+      - KestrelConfiguration__GrpcPort=5000
+      - KestrelConfiguration__HttpPort=5001
+    networks:
+     - library-network
+    expose:
+      - 5001
+    depends_on:
+      - library-db
+
+ library-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - SA_PASSWORD=Adenike62
+      - ACCEPT_EULA=Y
+    networks:
+      - library-network
+    ports:
+      - "1433:1433"
+
+networks:
+  library-network:
+    driver: bridge
