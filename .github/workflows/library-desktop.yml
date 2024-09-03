@@ -25,6 +25,9 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: List directory contents
+      run: dir /s
+
     - name: Restore dependencies
       run: dotnet restore RebtelAssessmentPackage.sln
 
@@ -36,8 +39,8 @@ jobs:
 
     - name: Publish Grpc and API projects
       run: |
-        dotnet publish Library.Grpc/Library.Grpc.csproj --configuration ${{ matrix.configuration }} --no-build --output publish/Library.Grpc
-        dotnet publish Library.Api/Library.Api.csproj --configuration ${{ matrix.configuration }} --no-build --output publish/Library.Api
+        dotnet publish src/Library.Grpc/Library.Grpc.csproj --configuration ${{ matrix.configuration }} --no-build --output publish/Library.Grpc
+        dotnet publish src/Library.Api/Library.Api.csproj --configuration ${{ matrix.configuration }} --no-build --output publish/Library.Api
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
