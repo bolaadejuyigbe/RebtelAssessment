@@ -8,11 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # Switch to Linux runner
     
     services:
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           SA_PASSWORD: "YourStrong@Passw0rd"
           ACCEPT_EULA: "Y"
@@ -22,7 +22,7 @@ jobs:
           --health-cmd "exit 0" 
           --health-interval 10s 
           --health-timeout 5s 
-          --health-retries 5 
+          --health-retries 5
 
     strategy:
       matrix:
@@ -42,9 +42,9 @@ jobs:
     - name: Wait for SQL Server to be up and running
       run: |
         echo "Waiting for SQL Server to be available..."
-        for /L %%i in (1,1,30) do (
-            powershell -command "try { $client = New-Object System.Net.Sockets.TcpClient('localhost', 1433); if ($client.Connected) { $client.Close(); exit 0 } } catch { Start-Sleep -Seconds 1 }"
-        )
+        while ! nc -z localhost 1433; do
+          sleep 1
+        done
         echo "SQL Server is up and running"
 
     - name: Restore dependencies
