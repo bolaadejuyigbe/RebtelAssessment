@@ -1,4 +1,6 @@
 using Library.Api.Interceptors;
+using Library.Api.Middleware;
+using Library.Api.Policies;
 using Library.Grpc.Contract;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<ClientDeadlineInterceptor>();
+builder.Services.AddScoped<ResilientPolicy>();
 builder.Services.AddGrpcClient<LibraryService.LibraryServiceClient>(x =>
 {
     var serviceAddress = builder.Configuration.GetValue<string>("Grpc:LibraryServiceUrl")
@@ -19,6 +22,7 @@ builder.Services.AddGrpcClient<LibraryService.LibraryServiceClient>(x =>
 }).AddInterceptor<ClientDeadlineInterceptor>();
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

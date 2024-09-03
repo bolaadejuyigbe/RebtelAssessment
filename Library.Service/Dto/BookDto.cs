@@ -14,6 +14,7 @@ namespace Library.Service.Dto
         public int TotalPages { get; set; }
         public int TotalCopies { get; set; }
         public int AvailableCopies { get; set; }
+        public int BorrowedCopies { get; set; }
         public string? ISBN { get; set; }
     }
 }

@@ -75,6 +75,7 @@ message Book {
   string author = 3;
   int32 totalPages = 4;
   int32 availableCopies =5;
+  int32 borrowedBooksCount = 6;
 }
 
 message User {

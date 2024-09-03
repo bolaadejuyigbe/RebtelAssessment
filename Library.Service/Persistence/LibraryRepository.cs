@@ -25,6 +25,7 @@ namespace Library.Service.Persistence
                  TotalPages = b.TotalPages,
                  TotalCopies = b.TotalCopies,
                  AvailableCopies = b.TotalCopies - b.BorrowRecords!.Count(br => br.ReturnedDate == null),
+                 BorrowedCopies = b.BorrowRecords!.Count(),
                  ISBN = b.ISBN
              })
              .ToListAsync();
@@ -72,7 +73,9 @@ namespace Library.Service.Persistence
                     Author = br.Book.Author,
                     TotalPages = br.Book.TotalPages,
                     TotalCopies = br.Book.TotalCopies,
-                    ISBN = br.Book.ISBN
+                    ISBN = br.Book.ISBN,
+                    AvailableCopies = br.Book.TotalCopies - br.Book.BorrowRecords!.Count(br => br.ReturnedDate == null),
+                    BorrowedCopies= br.Book.BorrowRecords!.Count()
                 })
                 .ToListAsync();
         }
@@ -93,7 +96,9 @@ namespace Library.Service.Persistence
                     Title = br.Book.Title,
                     Author = br.Book.Author,
                     TotalPages = br.Book.TotalPages,
-                    ISBN = br.Book.ISBN
+                    ISBN = br.Book.ISBN,
+                    AvailableCopies = br.Book.TotalCopies - br.Book.BorrowRecords!.Count(br => br.ReturnedDate == null),
+                    BorrowedCopies = br.Book.BorrowRecords!.Count(),    
                 })
                 .Distinct()
                 .ToListAsync();
@@ -101,17 +106,26 @@ namespace Library.Service.Persistence
         public async Task<float> GetReadRateAsync(int bookId)
         {
             var borrowRecords = await _context.BorrowRecords
-                .Where(br => br.BookId == bookId && br.ReturnedDate != null)
-                .ToListAsync();
+               .Where(br => br.BookId == bookId && br.ReturnedDate != null)
+               .Include(br => br.Book)  
+               .ToListAsync();
 
             if (borrowRecords.Count == 0)
+            {
+                return 0f;
+            }
+
+            var totalDays = borrowRecords.Sum(br => (br.ReturnedDate!.Value - br.BorrowedDate).TotalDays);
+
+            if (totalDays == 0)
             {
                 return 0f; 
             }
 
-            var totalDays = borrowRecords.Sum(br => (br.ReturnedDate!.Value - br.BorrowedDate).TotalDays);
-            var totalPages = borrowRecords!.First().Book!.TotalPages;
+            var totalPages = borrowRecords.First().Book?.TotalPages
+                ?? throw new InvalidOperationException("The book associated with the borrow records is null.");
 
+            // Calculate the read rate (pages per day)
             return totalPages / (float)totalDays;
         }
 

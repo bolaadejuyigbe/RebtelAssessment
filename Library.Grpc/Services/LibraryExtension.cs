@@ -13,6 +13,7 @@ namespace Library.Grpc.Services
              Title = bookDto.Title, 
              TotalPages = bookDto.TotalPages,   
              AvailableCopies = bookDto.AvailableCopies,
+             BorrowedBooksCount = bookDto.BorrowedCopies,
           };
         }
         public static IEnumerable<Contract.Book> MapToGrpcBooks(IEnumerable<BookDto> bookDtos)
