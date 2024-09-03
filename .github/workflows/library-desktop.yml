@@ -9,6 +9,20 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          SA_PASSWORD: "YourStrong@Passw0rd"
+          ACCEPT_EULA: "Y"
+        ports:
+          - 1433:1433
+        options: > 
+          --health-cmd "exit 0" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5 
 
     strategy:
       matrix:
@@ -25,6 +39,14 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Wait for SQL Server to be up and running
+      run: |
+        echo "Waiting for SQL Server to be available..."
+        for /L %%i in (1,1,30) do (
+            powershell -command "try { $client = New-Object System.Net.Sockets.TcpClient('localhost', 1433); if ($client.Connected) { $client.Close(); exit 0 } } catch { Start-Sleep -Seconds 1 }"
+        )
+        echo "SQL Server is up and running"
+
     - name: Restore dependencies
       run: dotnet restore RebtelAssessmentPackage.sln
 
@@ -32,6 +54,8 @@ jobs:
       run: dotnet build RebtelAssessmentPackage.sln --configuration ${{ matrix.configuration }} --no-restore
 
     - name: Run tests
+      env:
+        ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=TestDatabase;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
       run: dotnet test RebtelAssessmentPackage.sln --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
     - name: Publish Grpc and API projects

@@ -1,5 +1,7 @@
 ﻿using Grpc.Core;
+using Library.DataModel.Database;
 using Library.Grpc.Contract;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +17,13 @@ namespace LibraryService.Test
         public LibraryServiceTests(LibraryServiceFixture fixture)
         {
             _fixture = fixture;
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                             ?? "Server=localhost,1433;Database=TestDatabase;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;";
+
+            // Example of configuring DbContext for tests if needed
+            var optionsBuilder = new DbContextOptionsBuilder<LibraryDbContext>();
+            optionsBuilder.UseSqlServer(connectionString);
+            var context = new LibraryDbContext(optionsBuilder.Options);
         }
 
         [Fact]
