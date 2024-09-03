@@ -1,11 +1,12 @@
 ﻿using Grpc.Net.Client;
 using Library.Grpc;
 using Library.Grpc.Contract;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
 using static Library.Grpc.Contract.LibraryService;
 
 namespace LibraryService.Test
 {
-    public class LibraryServiceFixture : GrpcTestFixture<StartupExtension>, IDisposable
+    public class LibraryServiceFixture : GrpcTestFixture<StartupExtension>, IClassFixture<GrpcTestFixture<StartupExtension>>
     {
         private readonly LibraryServiceClient  _client;
 
