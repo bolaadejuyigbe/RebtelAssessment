@@ -1,4 +1,5 @@
-﻿using Library.Grpc.Contract;
+﻿using Grpc.Core;
+using Library.Grpc.Contract;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +52,7 @@ namespace LibraryService.Test
             var request = new MostBorrowedBooksRequest { Limit = -1 };
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => _fixture.GetMostBorrowedBooks(request));
+            Assert.Throws<RpcException>(() => _fixture.GetMostBorrowedBooks(request));
         }
 
         [Fact]
