@@ -18,28 +18,33 @@ namespace Library.Grpc
 
         public void ConfigureServices(IServiceCollection services)
         {
+            var envname = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        
             // Add services to the container.
             services.AddGrpc(options =>
             {
                 options.Interceptors.Add<LoggingAndErrorHandlingInterceptor>();
             });
+            if (envname != "Test") {
+                services.Configure<DbSettings>(options =>
+                {
+                    options.DbConnectionString = Configuration.GetValue<string>("DbConnectionString");
+                });
 
-            services.Configure<DbSettings>(options =>
-            {
-                options.DbConnectionString = Configuration.GetValue<string>("DbConnectionString");
-            });
-
-            services.AddDbContext<LibraryDbContext>((serviceProvider, options) =>
-            {
-                var dbSettings = serviceProvider.GetRequiredService<IOptions<DbSettings>>().Value;
-                options.UseSqlServer(dbSettings.DbConnectionString);
-            });
+                services.AddDbContext<LibraryDbContext>((serviceProvider, options) =>
+                {
+                    var dbSettings = serviceProvider.GetRequiredService<IOptions<DbSettings>>().Value;
+                    options.UseSqlServer(dbSettings.DbConnectionString);
+                });
+            }
+          
 
             ModuleConfiguration.ConfigureServices(services);
         }
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
+            var a = env.EnvironmentName;
             // Migrate and seed the database
             using (var scope = app.Services.CreateScope())
             {

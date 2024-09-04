@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Polly;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Library.DataModel.Models;
 
 namespace LibraryService.Test
 {
@@ -27,10 +28,17 @@ namespace LibraryService.Test
 
         public GrpcTestFixture()
         {
-
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
             _factory = new WebApplicationFactory<TStartup>()
                 .WithWebHostBuilder(builder =>
                 {
+                    builder.ConfigureServices(services =>
+                    {
+                        services.AddDbContext<LibraryDbContext>(options =>
+                        {
+                            options.UseInMemoryDatabase("InMemoryLibraryDb");
+                        });
+                    });
                    
                     builder.ConfigureKestrel(options =>
                     {
@@ -44,6 +52,31 @@ namespace LibraryService.Test
             {
                 HttpClient = Client,
             });
+            SeedDatabase();
+        }
+
+        private void SeedDatabase()
+        {
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+
+            dbContext.Database.EnsureCreated();  
+
+           
+            dbContext.Books.AddRange(
+                new Book { Title = "1984", Author = "George Orwell", TotalPages = 328, TotalCopies = 5, ISBN = "978-93-5300-895-6" },
+                new Book { Title = "To Kill a Mockingbird", Author = "Harper Lee", TotalPages = 281, TotalCopies = 3, ISBN = "978-45-8957-700-6" }
+            );
+            dbContext.Users.AddRange(
+                new User { Name = "John Doe", Email = "john.doe@example.com" },
+                new User { Name = "Jane Smith", Email = "jane.smith@example.com" }
+            );
+            dbContext.BorrowRecords.AddRange(
+                new BorrowRecord { BookId = 1, UserId = 1, BorrowedDate = DateTime.Now.AddDays(-10), ReturnedDate = DateTime.Now.AddDays(-5) },
+                new BorrowRecord { BookId = 2, UserId = 2, BorrowedDate = DateTime.Now.AddDays(-8), ReturnedDate = DateTime.Now.AddDays(-3) }
+            );
+
+            dbContext.SaveChanges();  
         }
         protected TResponse Execute<TResponse>(Func<TResponse> action)
         {
