@@ -36,8 +36,8 @@ jobs:
 
     - name: Publish Grpc and API projects
       run: |
-      dotnet publish src/Library/Library.Grpc/Library.Grpc.csproj --configuration Debug --no-build --output publish/Library.Grpc
-      dotnet publish src/Library/Library.Api/Library.Api.csproj --configuration Debug --no-build --output publish/Library.Api
+       dotnet publish src/Library/Library.Grpc/Library.Grpc.csproj --configuration Debug --no-build --output publish/Library.Grpc
+       dotnet publish src/Library/Library.Api/Library.Api.csproj --configuration Debug --no-build --output publish/Library.Api
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
