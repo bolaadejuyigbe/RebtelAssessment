@@ -14,7 +14,7 @@ namespace Library.Service.Persistence
         }
         public async Task<IEnumerable<BookDto>> GetMostBorrowedBooksAsync(int limit)
         {
-            if (limit <= 0)
+            if (limit < 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));
             return await _context.Books
              .OrderByDescending(b => b.BorrowRecords!.Count)
