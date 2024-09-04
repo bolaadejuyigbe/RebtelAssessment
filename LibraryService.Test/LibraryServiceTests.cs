@@ -4,6 +4,7 @@ using Library.Grpc.Contract;
 
 namespace LibraryService.Test
 {
+    [Trait("Category", "SmokeTest")]
     public class LibraryServiceTests: IClassFixture<LibraryServiceFixture>
     {
         private readonly LibraryServiceFixture _fixture;
